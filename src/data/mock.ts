@@ -42,6 +42,24 @@ export const fileOptions: FileOption[] = [
   },
 ];
 
+export const historyFiles: RecentRecord[] = [
+  {
+    fileName: "房屋租赁合同.pdf",
+    date: "2026-07-03",
+    status: "审查完成",
+  },
+  {
+    fileName: "房屋租赁合同.pdf",
+    date: "2026-07-02",
+    status: "审查完成",
+  },
+  {
+    fileName: "房屋租赁合同.pdf",
+    date: "2026-07-01",
+    status: "审查完成",
+  },
+];
+
 export const stoppedContractDraft: ContractDraft = {
   label: "合同生成",
   title: "房屋租赁合同",

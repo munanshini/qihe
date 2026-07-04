@@ -3,6 +3,7 @@
 import {
   Camera,
   Check,
+  Clock,
   File,
   FolderOpen,
   Image as ImageIcon,
@@ -20,7 +21,7 @@ import {
 } from "@/components/mobile-shell";
 import { RiskResult } from "@/components/risk-result";
 import { RecentRecordList, UploadCard } from "@/components/upload-card";
-import { fileOptions, recentRecords, riskItems } from "@/data/mock";
+import { fileOptions, historyFiles, recentRecords, riskItems } from "@/data/mock";
 import { mockReviewContract } from "@/lib/ai-placeholders";
 import { cn } from "@/lib/utils";
 
@@ -289,7 +290,7 @@ function IdentitySelect({
   return (
     <>
       <StatusBar />
-      <TopNav centeredTitle title="确认信息" />
+      <TopNav centeredTitle title="确认信息" onBack={onBack} />
       <section className="flex flex-1 flex-col px-7 pt-8">
         <h2 className="text-lg font-semibold text-slate-800">选择你的身份</h2>
         <p className="mt-1 text-sm text-slate-400">请选择你在合同中的身份</p>
@@ -464,7 +465,7 @@ function FilePicker({
         </h1>
         <div className="w-9" />
       </header>
-      <section className="flex flex-1 flex-col px-6 pt-2">
+      <section className="no-scrollbar flex flex-1 flex-col overflow-y-auto px-6 pt-2">
         <div className="flex h-11 items-center gap-2 rounded-xl bg-slate-50 px-4 text-slate-400">
           <Search size={16} />
           <span className="text-sm">搜索文件名</span>
@@ -501,10 +502,33 @@ function FilePicker({
         <button
           type="button"
           onClick={onConfirm}
-          className="mx-auto mt-auto h-12 w-48 rounded-xl bg-[#2563EB] font-semibold text-white shadow-sm"
+          className="mx-auto mt-10 h-12 w-48 rounded-xl bg-[#2563EB] font-semibold text-white shadow-sm"
         >
           确认上传
         </button>
+
+        <h2 className="mt-10 text-base font-semibold text-slate-800">历史文件</h2>
+        <div className="mt-4 space-y-3">
+          {historyFiles.map((file) => (
+            <button
+              key={file.fileName}
+              type="button"
+              onClick={onConfirm}
+              className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left shadow-sm"
+            >
+              <Clock size={22} className="text-slate-400" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-slate-700">
+                  {file.fileName}
+                </p>
+                <p className="mt-1 text-xs text-slate-400">
+                  {file.date} · {file.status}
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
+
         <HomeIndicator />
       </section>
     </>
@@ -518,30 +542,65 @@ function UploadPreview({
   onBack: () => void;
   onDone: () => void;
 }) {
+  const previewFiles = [
+    {
+      name: "房屋租赁合同.pdf",
+      type: "PDF",
+      date: "2026-07-04",
+      status: "待审查" as const,
+    },
+  ];
+
+  const statusStyle = (status: string) => {
+    switch (status) {
+      case "审查完成":
+        return "text-emerald-500";
+      case "审查中":
+        return "text-orange-400";
+      default:
+        return "text-slate-400";
+    }
+  };
+
   return (
     <>
       <StatusBar />
-      <TopNav centeredTitle title="上传图片" />
+      <TopNav centeredTitle title="上传图片" onBack={onBack} />
       <section className="flex flex-1 flex-col px-7 pt-8">
         <div className="grid grid-cols-2 gap-4">
-          <div className="relative aspect-[0.72] rounded-xl bg-[#E9C2C9] p-5">
-            <button
-              type="button"
-              onClick={onBack}
-              aria-label="删除"
-              className="absolute -right-2 -top-2 grid h-7 w-7 place-items-center rounded-full bg-slate-800 text-white"
-            >
-              <X size={15} />
-            </button>
-            <div className="mt-4 space-y-3">
-              {Array.from({ length: 7 }).map((_, index) => (
-                <span
-                  key={index}
-                  className="block h-px rounded-full bg-slate-500/45"
-                />
-              ))}
+          <div>
+            <div className="relative aspect-[0.72] rounded-xl bg-[#E9C2C9] p-5">
+              <button
+                type="button"
+                onClick={onBack}
+                aria-label="删除"
+                className="absolute -right-2 -top-2 grid h-7 w-7 place-items-center rounded-full bg-slate-800 text-white"
+              >
+                <X size={15} />
+              </button>
+              <div className="mt-4 space-y-3">
+                {Array.from({ length: 7 }).map((_, index) => (
+                  <span
+                    key={index}
+                    className="block h-px rounded-full bg-slate-500/45"
+                  />
+                ))}
+              </div>
+              <span className="absolute bottom-5 left-4 text-xs text-white/70">01</span>
             </div>
-            <span className="absolute bottom-5 left-4 text-xs text-white/70">01</span>
+            {previewFiles.map((file) => (
+              <div key={file.name} className="mt-3 px-1">
+                <p className="truncate text-sm font-semibold text-slate-700">
+                  {file.name}
+                </p>
+                <p className="mt-1 text-xs text-slate-400 whitespace-nowrap">
+                  {file.date}&nbsp;&nbsp;·&nbsp;&nbsp;
+                  <span className={statusStyle(file.status)}>
+                    ● {file.status}
+                  </span>
+                </p>
+              </div>
+            ))}
           </div>
           <button
             type="button"

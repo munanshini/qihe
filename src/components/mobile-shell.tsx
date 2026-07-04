@@ -43,6 +43,7 @@ type TopNavProps = {
   showBack?: boolean;
   action?: "more" | "share" | "none";
   centeredTitle?: boolean;
+  onBack?: () => void;
 };
 
 export function TopNav({
@@ -51,6 +52,7 @@ export function TopNav({
   showBack = true,
   action = "share",
   centeredTitle = false,
+  onBack,
 }: TopNavProps) {
   const actionIcon =
     action === "share" ? (
@@ -63,13 +65,24 @@ export function TopNav({
     <header className="relative flex h-12 shrink-0 items-center px-4">
       <div className="flex w-10 justify-start">
         {showBack ? (
-          <Link
-            href="/"
-            aria-label="返回首页"
-            className="grid h-9 w-9 place-items-center rounded-full text-slate-950"
-          >
-            <ArrowLeft size={24} strokeWidth={2.4} />
-          </Link>
+          onBack ? (
+            <button
+              type="button"
+              onClick={onBack}
+              aria-label="返回上一步"
+              className="grid h-9 w-9 place-items-center rounded-full text-slate-950"
+            >
+              <ArrowLeft size={24} strokeWidth={2.4} />
+            </button>
+          ) : (
+            <Link
+              href="/"
+              aria-label="返回首页"
+              className="grid h-9 w-9 place-items-center rounded-full text-slate-950"
+            >
+              <ArrowLeft size={24} strokeWidth={2.4} />
+            </Link>
+          )
         ) : null}
       </div>
 
