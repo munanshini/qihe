@@ -579,12 +579,10 @@ function UploadPreview({
           <span className="absolute bottom-5 left-4 text-xs text-white/70">01</span>
         </div>
         {previewFiles.map((file) => (
-          <div key={file.name} className="mt-3 px-1">
-            <p className="truncate text-sm font-semibold text-slate-700">
-              {file.name}
-            </p>
-            <p className="mt-1 text-xs text-slate-400 whitespace-nowrap">
-              {file.date}&nbsp;&nbsp;·&nbsp;&nbsp;
+          <div key={file.name} className="mt-3">
+            <p className="truncate text-sm text-slate-400 whitespace-nowrap">
+              <span className="font-semibold text-slate-700">{file.name}</span>
+              &nbsp;&nbsp;·&nbsp;&nbsp;{file.date}&nbsp;&nbsp;·&nbsp;&nbsp;
               <span className={statusStyle(file.status)}>
                 ● {file.status}
               </span>
