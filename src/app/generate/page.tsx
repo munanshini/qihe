@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Paperclip } from "lucide-react";
 import { ChatBubble, LoadingMessage, PromptBox } from "@/components/chat";
 import { ContractCard } from "@/components/contract-card";
 import {
@@ -16,24 +17,41 @@ import type { ContractDraft } from "@/lib/types";
 type ChatMessage =
   | { id: string; kind: "user"; text: string }
   | { id: string; kind: "assistant"; text: string }
-  | { id: string; kind: "contract"; draft: ContractDraft };
+  | { id: string; kind: "contract"; draft: ContractDraft }
+  | { id: string; kind: "file"; fileName: string };
 
 export default function GeneratePage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+
+  function handleFileUpload(file: File) {
+    setPendingFile(file);
+  }
 
   async function handleSend() {
     const text = input.trim() || "帮我写一份租房合同。";
     setInput("");
 
     if (messages.length === 0) {
-      setMessages([{ id: "user-1", kind: "user", text }]);
+      const initialMessages: ChatMessage[] = [
+        { id: "user-1", kind: "user", text },
+      ];
+      if (pendingFile) {
+        initialMessages.push({
+          id: "file-1",
+          kind: "file",
+          fileName: pendingFile.name,
+        });
+      }
+      setMessages(initialMessages);
+      setPendingFile(null);
       setLoading(true);
       await mockGenerateContractDraft(text);
       setLoading(false);
       setMessages([
-        { id: "user-1", kind: "user", text },
+        ...initialMessages,
         {
           id: "assistant-1",
           kind: "assistant",
@@ -45,11 +63,22 @@ export default function GeneratePage() {
     }
 
     const nextDraft = await mockGenerateContractDraft(text);
+    const newMessages: ChatMessage[] = [
+      { id: `user-${messages.length}`, kind: "user", text },
+    ];
+    if (pendingFile) {
+      newMessages.push({
+        id: `file-${messages.length + 1}`,
+        kind: "file",
+        fileName: pendingFile.name,
+      });
+    }
+    setPendingFile(null);
     setMessages((current) => [
       ...current,
-      { id: `user-${current.length}`, kind: "user", text },
+      ...newMessages,
       {
-        id: `contract-${current.length}`,
+        id: `contract-${current.length + newMessages.length}`,
         kind: "contract",
         draft: nextDraft.status ? fullContractDraft : nextDraft,
       },
@@ -59,13 +88,14 @@ export default function GeneratePage() {
   return (
     <PhoneFrame>
       <StatusBar />
-      <TopNav />
+      <TopNav action="none" />
 
       {messages.length === 0 ? (
         <InitialGenerateState
           value={input}
           onChange={setInput}
           onSend={handleSend}
+          onFileUpload={handleFileUpload}
         />
       ) : (
         <div className="flex min-h-0 flex-1 flex-col">
@@ -85,6 +115,17 @@ export default function GeneratePage() {
                   <ChatBubble key={message.id} role="assistant">
                     {message.text}
                   </ChatBubble>
+                );
+              }
+
+              if (message.kind === "file") {
+                return (
+                  <div key={message.id} className="flex justify-end">
+                    <div className="flex items-center gap-2 rounded-2xl rounded-tr-md bg-slate-100 px-4 py-3 text-sm text-slate-700">
+                      <Paperclip size={16} className="text-slate-400" />
+                      <span className="max-w-[200px] truncate">{message.fileName}</span>
+                    </div>
+                  </div>
                 );
               }
 
@@ -113,10 +154,12 @@ function InitialGenerateState({
   value,
   onChange,
   onSend,
+  onFileUpload,
 }: {
   value: string;
   onChange: (value: string) => void;
   onSend: () => void;
+  onFileUpload?: (file: File) => void;
 }) {
   return (
     <section className="flex flex-1 flex-col px-8 pt-28">
@@ -125,6 +168,7 @@ function InitialGenerateState({
         value={value}
         onChange={onChange}
         onSend={onSend}
+        onFileUpload={onFileUpload}
         multiline
         placeholder="请描述你的租房合同需求，例如：帮我写一份租房合同。"
         className="mt-8 border-slate-950 shadow-none"
