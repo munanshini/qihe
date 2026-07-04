@@ -565,51 +565,32 @@ function UploadPreview({
   return (
     <>
       <StatusBar />
-      <TopNav centeredTitle title="上传图片" onBack={onBack} />
+      <TopNav centeredTitle title="AI合同审查" onBack={onBack} action="none" />
       <section className="flex flex-1 flex-col px-7 pt-8">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <div className="relative aspect-[0.72] rounded-xl bg-[#E9C2C9] p-5">
-              <button
-                type="button"
-                onClick={onBack}
-                aria-label="删除"
-                className="absolute -right-2 -top-2 grid h-7 w-7 place-items-center rounded-full bg-slate-800 text-white"
-              >
-                <X size={15} />
-              </button>
-              <div className="mt-4 space-y-3">
-                {Array.from({ length: 7 }).map((_, index) => (
-                  <span
-                    key={index}
-                    className="block h-px rounded-full bg-slate-500/45"
-                  />
-                ))}
-              </div>
-              <span className="absolute bottom-5 left-4 text-xs text-white/70">01</span>
-            </div>
-            {previewFiles.map((file) => (
-              <div key={file.name} className="mt-3 px-1">
-                <p className="truncate text-sm font-semibold text-slate-700">
-                  {file.name}
-                </p>
-                <p className="mt-1 text-xs text-slate-400 whitespace-nowrap">
-                  {file.date}&nbsp;&nbsp;·&nbsp;&nbsp;
-                  <span className={statusStyle(file.status)}>
-                    ● {file.status}
-                  </span>
-                </p>
-              </div>
+        <div className="relative aspect-[0.72] rounded-xl bg-[#E9C2C9] p-5">
+          <div className="mt-4 space-y-3">
+            {Array.from({ length: 7 }).map((_, index) => (
+              <span
+                key={index}
+                className="block h-px rounded-full bg-slate-500/45"
+              />
             ))}
           </div>
-          <button
-            type="button"
-            className="flex aspect-[0.72] flex-col items-center justify-center rounded-xl bg-slate-50 text-slate-950"
-          >
-            <span className="text-4xl font-semibold">+</span>
-            <span className="mt-3 text-xs text-slate-500">继续上传</span>
-          </button>
+          <span className="absolute bottom-5 left-4 text-xs text-white/70">01</span>
         </div>
+        {previewFiles.map((file) => (
+          <div key={file.name} className="mt-3 px-1">
+            <p className="truncate text-sm font-semibold text-slate-700">
+              {file.name}
+            </p>
+            <p className="mt-1 text-xs text-slate-400 whitespace-nowrap">
+              {file.date}&nbsp;&nbsp;·&nbsp;&nbsp;
+              <span className={statusStyle(file.status)}>
+                ● {file.status}
+              </span>
+            </p>
+          </div>
+        ))}
 
         <button
           type="button"
