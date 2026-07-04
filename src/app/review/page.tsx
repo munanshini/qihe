@@ -263,7 +263,7 @@ function FilePicker({
     <>
       <StatusBar />
       <header className="flex h-12 items-center px-4">
-        <button type="button" onClick={onBack} className="grid h-9 w-9 place-items-center">
+        <button type="button" onClick={onBack} className="grid h-9 w-9 place-items-center text-[24px]">
           ‹
         </button>
         <h1 className="flex-1 text-center text-lg font-semibold text-slate-950">
