@@ -11,7 +11,7 @@ import {
 import { useState } from "react";
 import { QiheLogo } from "@/components/brand";
 import { PromptBox } from "@/components/chat";
-import { HomeIndicator, PhoneFrame } from "@/components/mobile-shell";
+import { HomeIndicator, PhoneFrame, StatusBar } from "@/components/mobile-shell";
 import { historyItems } from "@/data/mock";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +21,7 @@ export default function Home() {
 
   return (
     <PhoneFrame>
+      <StatusBar />
       <div className="relative flex min-h-0 flex-1 flex-col">
         <header className="flex h-16 items-center px-8">
           <button
@@ -176,10 +177,6 @@ function HistoryDrawer({
         <p className="mt-36 text-center text-sm text-slate-300">
           下半部分保持空白
         </p>
-      </div>
-
-      <div className="absolute bottom-0 left-0 right-0">
-        <HomeIndicator />
       </div>
     </aside>
   );

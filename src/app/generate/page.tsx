@@ -6,6 +6,7 @@ import { ContractCard } from "@/components/contract-card";
 import {
   HomeIndicator,
   PhoneFrame,
+  StatusBar,
   TopNav,
 } from "@/components/mobile-shell";
 import { fullContractDraft, stoppedContractDraft } from "@/data/mock";
@@ -57,6 +58,7 @@ export default function GeneratePage() {
 
   return (
     <PhoneFrame>
+      <StatusBar />
       <TopNav />
 
       {messages.length === 0 ? (
