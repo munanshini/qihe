@@ -1,6 +1,7 @@
 "use client";
 
-import { Copy, Plus, Send, ThumbsDown, ThumbsUp } from "lucide-react";
+import { useRef, useState } from "react";
+import { Copy, Plus, Send, ThumbsDown, ThumbsUp, X } from "lucide-react";
 import { QiheLogo } from "@/components/brand";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +12,7 @@ type PromptBoxProps = {
   onSend: () => void;
   multiline?: boolean;
   className?: string;
+  onFileUpload?: (file: File) => void;
 };
 
 export function PromptBox({
@@ -20,7 +22,29 @@ export function PromptBox({
   onSend,
   multiline = false,
   className,
+  onFileUpload,
 }: PromptBoxProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  function handleFileClick() {
+    fileInputRef.current?.click();
+  }
+
+  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      onFileUpload?.(file);
+    }
+    // 重置 input 以允许重复选择同一文件
+    event.target.value = "";
+  }
+
+  function handleRemoveFile() {
+    setSelectedFile(null);
+  }
+
   return (
     <div
       className={cn(
@@ -48,11 +72,34 @@ export function PromptBox({
         />
       )}
 
+      {/* 已选文件预览 */}
+      {selectedFile && multiline && (
+        <div className="mt-2 flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
+          <span className="min-w-0 truncate">{selectedFile.name}</span>
+          <button
+            type="button"
+            onClick={handleRemoveFile}
+            aria-label="移除文件"
+            className="grid h-5 w-5 shrink-0 place-items-center rounded-full text-slate-400 hover:text-slate-600"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
       <div className={cn("flex items-center gap-2", multiline && "justify-end")}>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
+          className="hidden"
+          onChange={handleFileChange}
+        />
         <button
           type="button"
           aria-label="添加附件"
           className="grid h-10 w-10 place-items-center rounded-full border border-slate-950 text-slate-950"
+          onClick={handleFileClick}
         >
           <Plus size={22} />
         </button>

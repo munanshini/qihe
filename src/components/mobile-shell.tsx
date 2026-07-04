@@ -41,7 +41,7 @@ type TopNavProps = {
   title?: string;
   subtitle?: string;
   showBack?: boolean;
-  action?: "more" | "share";
+  action?: "more" | "share" | "none";
   centeredTitle?: boolean;
 };
 
@@ -92,15 +92,17 @@ export function TopNav({
         </div>
       )}
 
-      <div className="flex w-10 justify-end">
-        <button
-          type="button"
-          aria-label={action === "share" ? "分享" : "更多"}
-          className="grid h-9 w-9 place-items-center rounded-full text-slate-950"
-        >
-          {actionIcon}
-        </button>
-      </div>
+      {action !== "none" && (
+        <div className="flex w-10 justify-end">
+          <button
+            type="button"
+            aria-label={action === "share" ? "分享" : "更多"}
+            className="grid h-9 w-9 place-items-center rounded-full text-slate-950"
+          >
+            {actionIcon}
+          </button>
+        </div>
+      )}
     </header>
   );
 }
