@@ -462,6 +462,7 @@ function FilePicker({
         <h1 className="flex-1 text-center text-lg font-semibold text-slate-950">
           系统文件
         </h1>
+        <div className="w-9" />
       </header>
       <section className="flex flex-1 flex-col px-6 pt-2">
         <div className="flex h-11 items-center gap-2 rounded-xl bg-slate-50 px-4 text-slate-400">
