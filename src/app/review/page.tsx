@@ -151,9 +151,9 @@ function ImportSheet({
       >
         <h2 className="text-base font-semibold text-slate-800">导入合同</h2>
         <div className="mt-8 grid grid-cols-3 gap-6">
-          <SheetOption label="相册" icon={<ImageIcon size={22} />} onClick={onAlbum} />
-          <SheetOption label="相机" icon={<Camera size={22} />} onClick={onCamera} />
-          <SheetOption label="系统文件" icon={<File size={22} />} onClick={onFile} />
+          <SheetOption label="相册" color="emerald" icon={<ImageIcon size={22} />} onClick={onAlbum} />
+          <SheetOption label="相机" color="orange" icon={<Camera size={22} />} onClick={onCamera} />
+          <SheetOption label="系统文件" color="blue" icon={<File size={22} />} onClick={onFile} />
         </div>
       </div>
     </div>
@@ -163,15 +163,23 @@ function ImportSheet({
 function SheetOption({
   label,
   icon,
+  color,
   onClick,
 }: {
   label: string;
   icon: React.ReactNode;
+  color: "emerald" | "orange" | "blue";
   onClick: () => void;
 }) {
+  const bg = {
+    emerald: "bg-emerald-500",
+    orange: "bg-orange-400",
+    blue: "bg-blue-500",
+  }[color];
+
   return (
     <button type="button" onClick={onClick} className="flex flex-col items-center">
-      <span className="grid h-12 w-12 place-items-center rounded-xl bg-slate-50 text-slate-600">
+      <span className={`grid h-12 w-12 place-items-center rounded-xl ${bg} text-white`}>
         {icon}
       </span>
       <span className="mt-3 text-xs text-slate-500">{label}</span>
