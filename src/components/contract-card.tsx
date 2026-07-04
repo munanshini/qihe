@@ -1,6 +1,7 @@
 import { FileText } from "lucide-react";
 import { FeedbackActions } from "@/components/chat";
 import type { ContractDraft } from "@/lib/types";
+import { draftToPlainText } from "@/lib/utils";
 
 type ContractCardProps = {
   draft: ContractDraft;
@@ -8,6 +9,8 @@ type ContractCardProps = {
 };
 
 export function ContractCard({ draft, compact = false }: ContractCardProps) {
+  const plainContent = draftToPlainText(draft);
+
   return (
     <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="mb-3 flex items-center gap-2 text-sm font-medium text-slate-500">
@@ -45,7 +48,7 @@ export function ContractCard({ draft, compact = false }: ContractCardProps) {
         </>
       )}
 
-      <FeedbackActions />
+      <FeedbackActions content={plainContent} />
     </article>
   );
 }

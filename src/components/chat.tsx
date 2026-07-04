@@ -1,9 +1,20 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Copy, Plus, Send, ThumbsDown, ThumbsUp, X } from "lucide-react";
+import { Copy, Check, Plus, Send, ThumbsDown, ThumbsUp, X } from "lucide-react";
 import { QiheLogo } from "@/components/brand";
 import { cn } from "@/lib/utils";
+
+/* 点赞弹跳动效 */
+const likeBounceKeyframes = `
+@keyframes like-bounce {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.3); }
+  50% { transform: scale(0.9); }
+  75% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+`;
 
 type PromptBoxProps = {
   placeholder: string;
@@ -153,28 +164,99 @@ export function LoadingMessage() {
   );
 }
 
-export function FeedbackActions() {
-  const actions = [
-    { label: "点赞", icon: ThumbsUp },
-    { label: "点踩", icon: ThumbsDown },
-    { label: "复制", icon: Copy },
-  ];
+export function FeedbackActions({ content }: { content?: string }) {
+  const [liked, setLiked] = useState(false);
+  const [disliked, setDisliked] = useState(false);
+  const [animating, setAnimating] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  function handleLike() {
+    if (liked) {
+      setLiked(false);
+      return;
+    }
+    setLiked(true);
+    setDisliked(false);
+    setAnimating(true);
+    setTimeout(() => setAnimating(false), 500);
+  }
+
+  function handleDislike() {
+    if (disliked) {
+      setDisliked(false);
+      return;
+    }
+    setDisliked(true);
+    setLiked(false);
+  }
+
+  async function handleCopy() {
+    if (!content) return;
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // 兜底：创建临时 textarea
+      const textarea = document.createElement("textarea");
+      textarea.value = content;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }
 
   return (
-    <div className="mt-3 flex items-center gap-4 text-slate-400">
-      {actions.map((action) => {
-        const Icon = action.icon;
-        return (
+    <>
+      <style>{likeBounceKeyframes}</style>
+      <div className="mt-3 flex items-center gap-4 text-slate-400">
+        <button
+          type="button"
+          aria-label="点赞"
+          onClick={handleLike}
+          className={cn(
+            "grid h-8 w-8 place-items-center rounded-full hover:bg-slate-50",
+            animating && "animate-[like-bounce_0.5s_ease]",
+            liked && "text-[#2563EB]",
+          )}
+        >
+          <ThumbsUp size={18} fill={liked ? "currentColor" : "none"} />
+        </button>
+        <button
+          type="button"
+          aria-label="点踩"
+          onClick={handleDislike}
+          className={cn(
+            "grid h-8 w-8 place-items-center rounded-full hover:bg-slate-50",
+            disliked && "text-slate-600",
+          )}
+        >
+          <ThumbsDown size={18} fill={disliked ? "currentColor" : "none"} />
+        </button>
+        <div className="relative">
           <button
-            key={action.label}
             type="button"
-            aria-label={action.label}
-            className="grid h-8 w-8 place-items-center rounded-full hover:bg-slate-50"
+            aria-label="复制"
+            onClick={handleCopy}
+            className={cn(
+              "grid h-8 w-8 place-items-center rounded-full hover:bg-slate-50",
+              copied && "text-green-500",
+            )}
           >
-            <Icon size={18} />
+            {copied ? <Check size={18} /> : <Copy size={18} />}
           </button>
-        );
-      })}
-    </div>
+          {copied && (
+            <span className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-slate-800 px-2 py-0.5 text-[10px] text-white shadow">
+              已复制
+            </span>
+          )}
+        </div>
+      </div>
+    </>
   );
 }
