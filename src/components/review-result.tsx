@@ -36,7 +36,7 @@ export function ReviewResultPage({ data, onBack }: { data: ReviewResult; onBack:
         <div className="absolute left-16 right-16 text-center">
           <h1 className="text-lg font-semibold text-slate-950">风险</h1>
         </div>
-        <div className="flex w-10 justify-end">
+        <div className="ml-auto flex w-10 justify-end">
           <button
             type="button"
             aria-label="分享"
