@@ -20,10 +20,11 @@ import {
   StatusBar,
   TopNav,
 } from "@/components/mobile-shell";
-import { RiskResult } from "@/components/risk-result";
+import { ReviewResultPage } from "@/components/review-result";
 import { RecentRecordList, UploadCard } from "@/components/upload-card";
-import { fileOptions, historyFiles, recentRecords, riskItems } from "@/data/mock";
+import { fileOptions, historyFiles, recentRecords } from "@/data/mock";
 import { mockReviewContract } from "@/lib/ai-placeholders";
+import type { ReviewResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type ReviewStep = "entry" | "sheet" | "album" | "files" | "uploading" | "preview" | "result";
@@ -52,9 +53,11 @@ export default function ReviewPage() {
   const [selectedFile, setSelectedFile] = useState(fileOptions[0].id);
   const [selectedPhoto, setSelectedPhoto] = useState(2);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [reviewResult, setReviewResult] = useState<ReviewResult | null>(null);
 
   async function showResult() {
-    await mockReviewContract();
+    const result = await mockReviewContract();
+    setReviewResult(result);
     setStep("result");
   }
 
@@ -87,8 +90,8 @@ export default function ReviewPage() {
         />
       ) : step === "preview" ? (
         <UploadPreview onBack={() => setStep("entry")} onDone={showResult} />
-      ) : step === "result" ? (
-        <RiskPage />
+      ) : step === "result" && reviewResult ? (
+        <ReviewResultPage data={reviewResult} />
       ) : (
         <ReviewEntry
           showSheet={step === "sheet"}
@@ -488,19 +491,6 @@ function UploadPreview({
         </button>
         <HomeIndicator />
       </section>
-    </>
-  );
-}
-
-function RiskPage() {
-  return (
-    <>
-      <StatusBar />
-      <TopNav centeredTitle title="风险" />
-      <section className="no-scrollbar flex-1 overflow-y-auto px-5 pb-8 pt-4">
-        <RiskResult items={riskItems} />
-      </section>
-      <HomeIndicator />
     </>
   );
 }
