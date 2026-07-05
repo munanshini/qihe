@@ -16,16 +16,7 @@ export const historyItems = [
 ];
 
 export const recentRecords: RecentRecord[] = [
-  {
-    fileName: "1783078708618.jpg",
-    date: "2026-07-03",
-    status: "审查完成",
-  },
-  {
-    fileName: "1783075303150.jpg",
-    date: "2026-07-03",
-    status: "审查完成",
-  },
+  // 清空以展示首次进入的空状态页面
 ];
 
 export const fileOptions: FileOption[] = [
@@ -48,6 +39,24 @@ export const fileOptions: FileOption[] = [
     id: "deposit-png",
     fileName: "押金收据.png",
     meta: "图片 · 860 KB · 2026-07-01",
+  },
+];
+
+export const historyFiles: RecentRecord[] = [
+  {
+    fileName: "房屋租赁合同.pdf",
+    date: "2026-07-03",
+    status: "审查完成",
+  },
+  {
+    fileName: "房屋租赁合同.pdf",
+    date: "2026-07-02",
+    status: "审查完成",
+  },
+  {
+    fileName: "房屋租赁合同.pdf",
+    date: "2026-07-01",
+    status: "审查完成",
   },
 ];
 

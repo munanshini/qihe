@@ -2,11 +2,9 @@
 
 import Link from "next/link";
 import {
-  BotMessageSquare,
   FileCheck2,
   FilePenLine,
   Menu,
-  ScanLine,
   Search,
   X,
 } from "lucide-react";
@@ -25,7 +23,7 @@ export default function Home() {
     <PhoneFrame>
       <StatusBar />
       <div className="relative flex min-h-0 flex-1 flex-col">
-        <header className="flex h-16 items-center justify-between px-8">
+        <header className="flex h-16 items-center px-8">
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
@@ -33,13 +31,6 @@ export default function Home() {
             className="grid h-11 w-11 place-items-center rounded-full text-slate-950"
           >
             <Menu size={34} strokeWidth={2.2} />
-          </button>
-          <button
-            type="button"
-            aria-label="功能入口"
-            className="grid h-11 w-11 place-items-center rounded-full text-[#F59E0B]"
-          >
-            <ScanLine size={26} />
           </button>
         </header>
 
@@ -133,7 +124,6 @@ function HistoryDrawer({
       )}
       aria-hidden={!open}
     >
-      <StatusBar />
       <div className="flex items-start justify-between px-8 pt-6">
         <div className="flex items-center gap-4">
           <div className="grid h-14 w-14 place-items-center rounded-full bg-blue-50 text-2xl font-semibold text-[#2563EB] ring-1 ring-blue-200">
@@ -160,7 +150,15 @@ function HistoryDrawer({
       <div className="px-8 pt-20">
         <div className="mb-10 flex items-center justify-between">
           <h2 className="text-3xl font-bold text-slate-950">历史对话</h2>
-          <Search size={46} strokeWidth={1.7} className="text-slate-950" />
+        </div>
+
+        <div className="mb-8 flex h-12 items-center gap-3 rounded-xl bg-slate-50 px-4">
+          <Search size={18} strokeWidth={1.7} className="shrink-0 text-slate-400" />
+          <input
+            type="text"
+            placeholder="搜索对话"
+            className="flex-1 bg-transparent text-sm text-slate-800 placeholder-slate-400 outline-none"
+          />
         </div>
 
         <div className="space-y-5">
@@ -180,14 +178,6 @@ function HistoryDrawer({
           下半部分保持空白
         </p>
       </div>
-
-      <div className="absolute bottom-0 left-0 right-0">
-        <HomeIndicator />
-      </div>
-      <BotMessageSquare
-        size={26}
-        className="absolute right-8 top-36 text-slate-950"
-      />
     </aside>
   );
 }

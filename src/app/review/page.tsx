@@ -3,13 +3,16 @@
 import {
   Camera,
   Check,
+  Clock,
   File,
   FolderOpen,
   Image as ImageIcon,
+  Loader2,
   Search,
+  Upload,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   HomeIndicator,
   PhoneFrame,
@@ -18,11 +21,11 @@ import {
 } from "@/components/mobile-shell";
 import { RiskResult } from "@/components/risk-result";
 import { RecentRecordList, UploadCard } from "@/components/upload-card";
-import { fileOptions, recentRecords, riskItems } from "@/data/mock";
+import { fileOptions, historyFiles, recentRecords, riskItems } from "@/data/mock";
 import { mockReviewContract } from "@/lib/ai-placeholders";
 import { cn } from "@/lib/utils";
 
-type ReviewStep = "entry" | "sheet" | "album" | "files" | "preview" | "result";
+type ReviewStep = "entry" | "sheet" | "album" | "files" | "uploading" | "identity" | "preview" | "result";
 
 const albumTiles = [
   "bg-[#D9D367]",
@@ -47,10 +50,18 @@ export default function ReviewPage() {
   const [step, setStep] = useState<ReviewStep>("entry");
   const [selectedFile, setSelectedFile] = useState(fileOptions[0].id);
   const [selectedPhoto, setSelectedPhoto] = useState(2);
+  const [identity, setIdentity] = useState<"lessor" | "lessee" | null>(null);
+  const [note, setNote] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   async function showResult() {
     await mockReviewContract();
     setStep("result");
+  }
+
+  function startUpload() {
+    setStep("uploading");
+    setUploadProgress(0);
   }
 
   return (
@@ -60,14 +71,29 @@ export default function ReviewPage() {
           selectedPhoto={selectedPhoto}
           onSelect={setSelectedPhoto}
           onCancel={() => setStep("entry")}
-          onDone={() => setStep("preview")}
+          onDone={startUpload}
         />
       ) : step === "files" ? (
         <FilePicker
           selectedFile={selectedFile}
           onSelect={setSelectedFile}
           onBack={() => setStep("entry")}
-          onConfirm={() => setStep("preview")}
+          onConfirm={startUpload}
+        />
+      ) : step === "uploading" ? (
+        <UploadLoading
+          progress={uploadProgress}
+          onProgress={setUploadProgress}
+          onComplete={() => setStep("identity")}
+        />
+      ) : step === "identity" ? (
+        <IdentitySelect
+          identity={identity}
+          onIdentityChange={setIdentity}
+          note={note}
+          onNoteChange={setNote}
+          onBack={() => setStep("entry")}
+          onSubmit={() => setStep("preview")}
         />
       ) : step === "preview" ? (
         <UploadPreview onBack={() => setStep("entry")} onDone={showResult} />
@@ -80,7 +106,7 @@ export default function ReviewPage() {
           onCloseSheet={() => setStep("entry")}
           onAlbum={() => setStep("album")}
           onFile={() => setStep("files")}
-          onCamera={() => setStep("preview")}
+          onCamera={startUpload}
         />
       )}
     </PhoneFrame>
@@ -102,6 +128,8 @@ function ReviewEntry({
   onFile: () => void;
   onCamera: () => void;
 }) {
+  const hasRecords = recentRecords.length > 0;
+
   return (
     <>
       <StatusBar />
@@ -113,12 +141,26 @@ function ReviewEntry({
         <div className="mt-8">
           <UploadCard onClick={onUpload} />
         </div>
-        <div className="mt-24">
-          <RecentRecordList records={recentRecords} />
-        </div>
-        <div className="mt-auto">
-          <HomeIndicator />
-        </div>
+        {hasRecords ? (
+          <div className="mt-24">
+            <RecentRecordList records={recentRecords} />
+          </div>
+        ) : (
+          <div className="mt-16 flex flex-1 flex-col items-center justify-center text-center">
+            <div className="grid h-20 w-20 place-items-center rounded-full bg-slate-50">
+              <File size={36} strokeWidth={1.5} className="text-slate-300" />
+            </div>
+            <p className="mt-6 text-base font-medium text-slate-500">暂无历史记录</p>
+            <p className="mt-2 text-sm text-slate-400">
+              上传你的第一份合同，开始智能审查
+            </p>
+          </div>
+        )}
+        {hasRecords ? (
+          <div className="mt-auto">
+            <HomeIndicator />
+          </div>
+        ) : null}
       </section>
       {showSheet ? (
         <ImportSheet
@@ -151,9 +193,9 @@ function ImportSheet({
       >
         <h2 className="text-base font-semibold text-slate-800">导入合同</h2>
         <div className="mt-8 grid grid-cols-3 gap-6">
-          <SheetOption label="相册" icon={<ImageIcon size={22} />} onClick={onAlbum} />
-          <SheetOption label="相机" icon={<Camera size={22} />} onClick={onCamera} />
-          <SheetOption label="系统文件" icon={<File size={22} />} onClick={onFile} />
+          <SheetOption label="相册" color="emerald" icon={<ImageIcon size={22} />} onClick={onAlbum} />
+          <SheetOption label="相机" color="orange" icon={<Camera size={22} />} onClick={onCamera} />
+          <SheetOption label="系统文件" color="blue" icon={<File size={22} />} onClick={onFile} />
         </div>
       </div>
     </div>
@@ -163,19 +205,179 @@ function ImportSheet({
 function SheetOption({
   label,
   icon,
+  color,
   onClick,
 }: {
   label: string;
   icon: React.ReactNode;
+  color: "emerald" | "orange" | "blue";
   onClick: () => void;
 }) {
+  const bg = {
+    emerald: "bg-emerald-500",
+    orange: "bg-orange-400",
+    blue: "bg-blue-500",
+  }[color];
+
   return (
     <button type="button" onClick={onClick} className="flex flex-col items-center">
-      <span className="grid h-12 w-12 place-items-center rounded-xl bg-slate-50 text-slate-600">
+      <span className={`grid h-12 w-12 place-items-center rounded-xl ${bg} text-white`}>
         {icon}
       </span>
       <span className="mt-3 text-xs text-slate-500">{label}</span>
     </button>
+  );
+}
+
+function UploadLoading({
+  progress,
+  onProgress,
+  onComplete,
+}: {
+  progress: number;
+  onProgress: (value: number) => void;
+  onComplete: () => void;
+}) {
+  useEffect(() => {
+    if (progress >= 100) {
+      const timer = setTimeout(onComplete, 500);
+      return () => clearTimeout(timer);
+    }
+    const timer = setTimeout(() => {
+      onProgress(Math.min(progress + Math.random() * 30 + 10, 100));
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [progress, onProgress, onComplete]);
+
+  return (
+    <>
+      <StatusBar />
+      <TopNav centeredTitle title="上传合同" />
+      <section className="flex flex-1 flex-col items-center justify-center px-7">
+        <div className="mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-blue-50">
+          <Upload size={36} strokeWidth={1.8} className="text-[#2563EB]" />
+        </div>
+        <h2 className="text-lg font-semibold text-slate-800">正在上传合同...</h2>
+        <p className="mt-2 text-sm text-slate-400">请稍后，正在解析文件内容</p>
+
+        <div className="mt-10 h-1.5 w-56 overflow-hidden rounded-full bg-slate-100">
+          <div
+            className="h-full rounded-full bg-[#2563EB] transition-all duration-300 ease-out"
+            style={{ width: `${Math.round(progress)}%` }}
+          />
+        </div>
+        <p className="mt-3 text-xs text-slate-400">{Math.round(progress)}%</p>
+      </section>
+    </>
+  );
+}
+
+function IdentitySelect({
+  identity,
+  onIdentityChange,
+  note,
+  onNoteChange,
+  onBack,
+  onSubmit,
+}: {
+  identity: "lessor" | "lessee" | null;
+  onIdentityChange: (value: "lessor" | "lessee") => void;
+  note: string;
+  onNoteChange: (value: string) => void;
+  onBack: () => void;
+  onSubmit: () => void;
+}) {
+  return (
+    <>
+      <StatusBar />
+      <TopNav centeredTitle title="确认信息" onBack={onBack} />
+      <section className="flex flex-1 flex-col px-7 pt-8">
+        <h2 className="text-lg font-semibold text-slate-800">选择你的身份</h2>
+        <p className="mt-1 text-sm text-slate-400">请选择你在合同中的身份</p>
+
+        <div className="mt-6 grid grid-cols-2 gap-4">
+          <button
+            type="button"
+            onClick={() => onIdentityChange("lessor")}
+            className={`flex flex-col items-center rounded-2xl border-2 px-4 py-6 transition-colors ${
+              identity === "lessor"
+                ? "border-[#2563EB] bg-blue-50"
+                : "border-slate-200 bg-white"
+            }`}
+          >
+            <span
+              className={`grid h-12 w-12 place-items-center rounded-full text-lg font-bold ${
+                identity === "lessor"
+                  ? "bg-[#2563EB] text-white"
+                  : "bg-slate-100 text-slate-400"
+              }`}
+            >
+              租
+            </span>
+            <span
+              className={`mt-3 text-sm font-semibold ${
+                identity === "lessor" ? "text-[#2563EB]" : "text-slate-600"
+              }`}
+            >
+              出租方
+            </span>
+            <span className="mt-1 text-xs text-slate-400">我是房东/出租人</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onIdentityChange("lessee")}
+            className={`flex flex-col items-center rounded-2xl border-2 px-4 py-6 transition-colors ${
+              identity === "lessee"
+                ? "border-[#2563EB] bg-blue-50"
+                : "border-slate-200 bg-white"
+            }`}
+          >
+            <span
+              className={`grid h-12 w-12 place-items-center rounded-full text-lg font-bold ${
+                identity === "lessee"
+                  ? "bg-[#2563EB] text-white"
+                  : "bg-slate-100 text-slate-400"
+              }`}
+            >
+              承
+            </span>
+            <span
+              className={`mt-3 text-sm font-semibold ${
+                identity === "lessee" ? "text-[#2563EB]" : "text-slate-600"
+              }`}
+            >
+              承租方
+            </span>
+            <span className="mt-1 text-xs text-slate-400">我是租客/承租人</span>
+          </button>
+        </div>
+
+        <div className="mt-8">
+          <h3 className="text-sm font-semibold text-slate-700">补充说明（选填）</h3>
+          <textarea
+            value={note}
+            onChange={(e) => onNoteChange(e.target.value)}
+            placeholder="如有需要补充的信息可以写在这里..."
+            className="mt-3 h-28 w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 placeholder-slate-400 outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={onSubmit}
+          disabled={!identity}
+          className={`mx-auto mt-auto h-12 w-full rounded-xl font-semibold text-white shadow-sm ${
+            identity
+              ? "bg-[#2563EB]"
+              : "cursor-not-allowed bg-slate-300"
+          }`}
+        >
+          开始审查
+        </button>
+        <HomeIndicator />
+      </section>
+    </>
   );
 }
 
@@ -255,23 +457,21 @@ function FilePicker({
     <>
       <StatusBar />
       <header className="flex h-12 items-center px-4">
-        <button type="button" onClick={onBack} className="grid h-9 w-9 place-items-center">
+        <button type="button" onClick={onBack} className="grid h-9 w-9 place-items-center text-[24px]">
           ‹
         </button>
         <h1 className="flex-1 text-center text-lg font-semibold text-slate-950">
           系统文件
         </h1>
-        <button type="button" className="w-9 text-sm text-[#2563EB]">
-          选择
-        </button>
+        <div className="w-9" />
       </header>
-      <section className="flex flex-1 flex-col px-6 pt-2">
+      <section className="no-scrollbar flex flex-1 flex-col overflow-y-auto px-6 pt-2">
         <div className="flex h-11 items-center gap-2 rounded-xl bg-slate-50 px-4 text-slate-400">
           <Search size={16} />
           <span className="text-sm">搜索文件名</span>
         </div>
 
-        <h2 className="mt-8 text-base font-semibold text-slate-800">最近文件</h2>
+        <h2 className="mt-8 text-base font-semibold text-slate-800">文件类型</h2>
         <div className="mt-4 space-y-3">
           {fileOptions.map((file) => (
             <button
@@ -302,10 +502,33 @@ function FilePicker({
         <button
           type="button"
           onClick={onConfirm}
-          className="mx-auto mt-auto h-12 w-48 rounded-xl bg-[#2563EB] font-semibold text-white shadow-sm"
+          className="mx-auto mt-10 h-12 w-48 rounded-xl bg-[#2563EB] font-semibold text-white shadow-sm"
         >
           确认上传
         </button>
+
+        <h2 className="mt-10 text-base font-semibold text-slate-800">历史文件</h2>
+        <div className="mt-4 space-y-3">
+          {historyFiles.map((file) => (
+            <button
+              key={file.fileName}
+              type="button"
+              onClick={onConfirm}
+              className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left shadow-sm"
+            >
+              <Clock size={22} className="text-slate-400" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-slate-700">
+                  {file.fileName}
+                </p>
+                <p className="mt-1 text-xs text-slate-400">
+                  {file.date} · {file.status}
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
+
         <HomeIndicator />
       </section>
     </>
@@ -319,39 +542,53 @@ function UploadPreview({
   onBack: () => void;
   onDone: () => void;
 }) {
+  const previewFiles = [
+    {
+      name: "房屋租赁合同.pdf",
+      type: "PDF",
+      date: "2026-07-04",
+      status: "待审查" as const,
+    },
+  ];
+
+  const statusStyle = (status: string) => {
+    switch (status) {
+      case "审查完成":
+        return "text-emerald-500";
+      case "审查中":
+        return "text-orange-400";
+      default:
+        return "text-slate-400";
+    }
+  };
+
   return (
     <>
       <StatusBar />
-      <TopNav centeredTitle title="上传图片" />
+      <TopNav centeredTitle title="AI合同审查" onBack={onBack} action="none" />
       <section className="flex flex-1 flex-col px-7 pt-8">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="relative aspect-[0.72] rounded-xl bg-[#E9C2C9] p-5">
-            <button
-              type="button"
-              onClick={onBack}
-              aria-label="删除"
-              className="absolute -right-2 -top-2 grid h-7 w-7 place-items-center rounded-full bg-slate-800 text-white"
-            >
-              <X size={15} />
-            </button>
-            <div className="mt-4 space-y-3">
-              {Array.from({ length: 7 }).map((_, index) => (
-                <span
-                  key={index}
-                  className="block h-px rounded-full bg-slate-500/45"
-                />
-              ))}
-            </div>
-            <span className="absolute bottom-5 left-4 text-xs text-white/70">01</span>
+        <div className="relative aspect-[0.72] rounded-xl bg-[#E9C2C9] p-5">
+          <div className="mt-4 space-y-3">
+            {Array.from({ length: 7 }).map((_, index) => (
+              <span
+                key={index}
+                className="block h-px rounded-full bg-slate-500/45"
+              />
+            ))}
           </div>
-          <button
-            type="button"
-            className="flex aspect-[0.72] flex-col items-center justify-center rounded-xl bg-slate-50 text-slate-950"
-          >
-            <span className="text-4xl font-semibold">+</span>
-            <span className="mt-3 text-xs text-slate-500">继续上传</span>
-          </button>
+          <span className="absolute bottom-5 left-4 text-xs text-white/70">01</span>
         </div>
+        {previewFiles.map((file) => (
+          <div key={file.name} className="mt-3">
+            <p className="truncate text-sm text-slate-400 whitespace-nowrap">
+              <span className="font-semibold text-slate-700">{file.name}</span>
+              &nbsp;&nbsp;·&nbsp;&nbsp;{file.date}&nbsp;&nbsp;·&nbsp;&nbsp;
+              <span className={statusStyle(file.status)}>
+                ● {file.status}
+              </span>
+            </p>
+          </div>
+        ))}
 
         <button
           type="button"
