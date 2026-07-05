@@ -2,70 +2,94 @@
 
 import { useState } from "react";
 import {
+  ArrowLeft,
   ChevronDown,
   ChevronUp,
   Download,
-  FileText,
-  User,
+  Share2,
 } from "lucide-react";
 import type { ReviewResult, ReviewRisk, DiffSegment } from "@/lib/types";
+import { StatusBar } from "@/components/mobile-shell";
 import { cn } from "@/lib/utils";
 
 /* ========== 主组件 ========== */
 
 type Tab = "risk" | "original" | "parties";
 
-export function ReviewResultPage({ data }: { data: ReviewResult }) {
+export function ReviewResultPage({ data, onBack }: { data: ReviewResult; onBack: () => void }) {
   const [tab, setTab] = useState<Tab>("risk");
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Tab 切换栏 */}
-      <div className="flex shrink-0 border-b border-slate-200 px-5">
-        {(
-          [
-            { key: "risk", label: "风险", icon: null },
-            { key: "original", label: "原文", icon: null },
-            { key: "parties", label: "主体", icon: null },
-          ] as const
-        ).map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => setTab(t.key)}
-            className={cn(
-              "relative px-4 py-3 text-sm font-medium transition-colors",
-              tab === t.key
-                ? "text-[#2563EB]"
-                : "text-slate-400",
-            )}
-          >
-            {t.label}
-            {tab === t.key && (
-              <span className="absolute bottom-0 left-1/2 h-0.5 w-5 -translate-x-1/2 rounded-full bg-[#2563EB]" />
-            )}
-          </button>
-        ))}
-
-        {/* 右侧下载按钮 */}
-        <div className="ml-auto flex items-center">
+    <>
+      <StatusBar />
+      <header className="relative flex h-12 shrink-0 items-center px-4">
+        <div className="flex w-10 justify-start">
           <button
             type="button"
-            aria-label="下载报告"
-            className="grid h-8 w-8 place-items-center rounded-full text-slate-400"
+            onClick={onBack}
+            aria-label="返回上一步"
+            className="grid h-9 w-9 place-items-center rounded-full text-slate-950"
           >
-            <Download size={18} />
+            <ArrowLeft size={24} strokeWidth={2.4} />
           </button>
         </div>
-      </div>
+        <div className="absolute left-16 right-16 text-center">
+          <h1 className="text-lg font-semibold text-slate-950">风险</h1>
+        </div>
+        <div className="flex w-10 justify-end">
+          <button
+            type="button"
+            aria-label="分享"
+            className="grid h-9 w-9 place-items-center rounded-full text-slate-950"
+          >
+            <Share2 size={22} strokeWidth={2} />
+          </button>
+        </div>
+      </header>
 
-      {/* Tab 内容区域 */}
-      <div className="no-scrollbar flex-1 overflow-y-auto">
-        {tab === "risk" && <RiskTab risks={data.risks} />}
-        {tab === "original" && <OriginalTab data={data} />}
-        {tab === "parties" && <PartiesTab data={data} />}
+      <div className="flex flex-1 flex-col">
+        <div className="flex shrink-0 border-b border-slate-200 px-5">
+          {(
+            [
+              { key: "risk", label: "风险", icon: null },
+              { key: "original", label: "原文", icon: null },
+              { key: "parties", label: "主体", icon: null },
+            ] as const
+          ).map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => setTab(t.key)}
+              className={cn(
+                "relative px-4 py-3 text-sm font-medium transition-colors",
+                tab === t.key ? "text-[#2563EB]" : "text-slate-400",
+              )}
+            >
+              {t.label}
+              {tab === t.key && (
+                <span className="absolute bottom-0 left-1/2 h-0.5 w-5 -translate-x-1/2 rounded-full bg-[#2563EB]" />
+              )}
+            </button>
+          ))}
+
+          <div className="ml-auto flex items-center">
+            <button
+              type="button"
+              aria-label="下载报告"
+              className="grid h-8 w-8 place-items-center rounded-full text-slate-400"
+            >
+              <Download size={18} />
+            </button>
+          </div>
+        </div>
+
+        <div className="no-scrollbar flex-1 overflow-y-auto">
+          {tab === "risk" && <RiskTab risks={data.risks} />}
+          {tab === "original" && <OriginalTab data={data} />}
+          {tab === "parties" && <PartiesTab data={data} />}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

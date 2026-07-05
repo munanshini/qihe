@@ -91,7 +91,7 @@ export default function ReviewPage() {
       ) : step === "preview" ? (
         <UploadPreview onBack={() => setStep("entry")} onDone={showResult} />
       ) : step === "result" && reviewResult ? (
-        <ReviewResultPage data={reviewResult} />
+        <ReviewResultPage data={reviewResult} onBack={() => setStep("preview")} />
       ) : (
         <ReviewEntry
           showSheet={step === "sheet"}
@@ -458,7 +458,11 @@ function UploadPreview({
       <StatusBar />
       <TopNav centeredTitle title="AI合同审查" onBack={onBack} action="none" />
       <section className="flex flex-1 flex-col px-7 pt-8">
-        <div className="relative aspect-[0.72] rounded-xl bg-[#E9C2C9] p-5">
+        <button
+          type="button"
+          onClick={onDone}
+          className="relative aspect-[0.72] w-full rounded-xl bg-[#E9C2C9] p-5 text-left"
+        >
           <div className="mt-4 space-y-3">
             {Array.from({ length: 7 }).map((_, index) => (
               <span
@@ -468,7 +472,7 @@ function UploadPreview({
             ))}
           </div>
           <span className="absolute bottom-5 left-4 text-xs text-white/70">01</span>
-        </div>
+        </button>
         {previewFiles.map((file) => (
           <div key={file.name} className="mt-3">
             <p className="truncate text-sm text-slate-400 whitespace-nowrap">
